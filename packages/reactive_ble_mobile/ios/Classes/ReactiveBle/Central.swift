@@ -291,6 +291,10 @@ final class Central {
 
         guard characteristic.properties.contains(.writeWithoutResponse)
         else { throw Failure.notWritable(characteristicInstance) }
+        
+        if characteristic.service?.peripheral?.canSendWriteWithoutResponse != true {
+            throw Failure.cannotWrite(characteristicInstance)
+        }
 
         guard let response = characteristic.service?.peripheral?.writeValue(value, for: characteristic, type: .withoutResponse)
         else { throw Failure.characteristicNotFound(characteristicInstance) }
@@ -360,6 +364,7 @@ final class Central {
         case notificationsNotSupported(CharacteristicInstance)
         case notReadable(CharacteristicInstance)
         case notWritable(CharacteristicInstance)
+        case cannotWrite(CharacteristicInstance)
 
         var description: String {
             switch self {
@@ -379,6 +384,8 @@ final class Central {
                 return "The characteristic \(characteristicInstance.id) of the service \(characteristicInstance.serviceID) of the peripheral \(characteristicInstance.peripheralID) is not readable"
             case .notWritable(let characteristicInstance):
                 return "The characteristic \(characteristicInstance.id) of the service \(characteristicInstance.serviceID) of the peripheral \(characteristicInstance.peripheralID) is not writable"
+            case .cannotWrite(let characteristicInstance):
+                return "The characteristic \(characteristicInstance.id) of the service \(characteristicInstance.serviceID) of the peripheral \(characteristicInstance.peripheralID) cannot be written at the moment"
             }
         }
     }
